@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Gestión - UGEL</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f0f2f5;color:#222;font-size:14px}
+.hidden{display:none!important}
+/* AUTH */
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a3a6b,#2563a8)}
+.auth-box{background:#fff;border-radius:12px;padding:2.5rem 2rem;width:380px;box-shadow:0 8px 32px rgba(0,0,0,0.18)}
+.auth-box h1{font-size:1.4rem;color:#1a3a6b;margin-bottom:0.3rem;text-align:center}
+.auth-box .sub{font-size:0.82rem;color:#666;text-align:center;margin-bottom:1.8rem}
+.auth-tabs{display:flex;border-bottom:2px solid #e0e0e0;margin-bottom:1.5rem}
+.auth-tab{flex:1;padding:0.6rem;text-align:center;cursor:pointer;font-size:0.9rem;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px}
+.auth-tab.active{color:#1a3a6b;font-weight:700;border-bottom-color:#1a3a6b}
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:0.82rem;color:#555;margin-bottom:0.35rem;font-weight:600}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:0.55rem 0.75rem;border:1.5px solid #ccc;border-radius:7px;font-size:0.9rem;outline:none;transition:border 0.2s}
+.form-group input:focus,.form-group select:focus{border-color:#2563a8}
+.btn{display:inline-block;padding:0.6rem 1.4rem;border:none;border-radius:7px;cursor:pointer;font-size:0.9rem;font-weight:600;transition:all 0.2s}
+.btn-primary{background:#1a3a6b;color:#fff}
+.btn-primary:hover{background:#2563a8}
+.btn-secondary{background:#e0e7ef;color:#1a3a6b}
+.btn-secondary:hover{background:#c7d7ee}
+.btn-danger{background:#c0392b;color:#fff}
+.btn-danger:hover{background:#e74c3c}
+.btn-success{background:#1a7a4a;color:#fff}
+.btn-success:hover{background:#25a366}
+.btn-warning{background:#d97706;color:#fff}
+.btn-warning:hover{background:#f59e0b}
+.btn-full{width:100%}
+.btn-sm{padding:0.35rem 0.9rem;font-size:0.8rem}
+/* MAIN LAYOUT */
+.main-wrap{min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#1a3a6b;color:#fff;padding:0.7rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.topbar h2{font-size:1rem}
+.topbar .user-info{font-size:0.82rem;opacity:0.85}
+.content{flex:1;padding:1.5rem}
+/* TABS */
+.tab-bar{display:flex;gap:0.5rem;margin-bottom:1.5rem;border-bottom:2px solid #d1d5db;padding-bottom:0}
+.tab-btn{padding:0.55rem 1.2rem;border:none;background:none;cursor:pointer;font-size:0.88rem;color:#555;border-bottom:3px solid transparent;margin-bottom:-2px;border-radius:6px 6px 0 0;transition:all 0.2s}
+.tab-btn.active{color:#1a3a6b;font-weight:700;border-bottom-color:#1a3a6b;background:#e8eef7}
+.tab-content{display:none}
+.tab-content.active{display:block}
+/* CARDS */
+.card{background:#fff;border-radius:10px;padding:1.2rem 1.4rem;margin-bottom:1rem;box-shadow:0 1px 4px rgba(0,0,0,0.07)}
+.card h3{font-size:1rem;color:#1a3a6b;margin-bottom:0.8rem;border-bottom:1.5px solid #e0e7ef;padding-bottom:0.5rem}
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:0.8rem}
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+table th{background:#1a3a6b;color:#fff;padding:0.55rem 0.7rem;text-align:left;white-space:nowrap}
+table td{padding:0.5rem 0.7rem;border-bottom:1px solid #eee;vertical-align:middle}
+table tr:hover td{background:#f5f8ff}
+/* BADGES */
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:0.75rem;font-weight:700}
+.badge-pending{background:#fef3c7;color:#92400e}
+.badge-approved{background:#d1fae5;color:#065f46}
+.badge-rejected{background:#fee2e2;color:#991b1b}
+.badge-sent{background:#dbeafe;color:#1e40af}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal-box{background:#fff;border-radius:12px;padding:1.8rem;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal-box h3{font-size:1.1rem;color:#1a3a6b;margin-bottom:1rem}
+/* ROLE ACCESS */
+.role-panel{background:#fff;border-radius:10px;padding:1.5rem;max-width:400px;margin:2rem auto;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.role-panel h3{color:#1a3a6b;margin-bottom:1rem}
+/* STATS */
+.stat-card{background:#fff;border-radius:10px;padding:1rem 1.2rem;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.07)}
+.stat-card .val{font-size:1.6rem;font-weight:700;color:#1a3a6b}
+.stat-card .lbl{font-size:0.78rem;color:#666;margin-top:0.2rem}
+/* INLINE ROW */
+.row-btns{display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap}
+.alert{padding:0.7rem 1rem;border-radius:7px;margin-bottom:0.8rem;font-size:0.85rem}
+.alert-info{background:#dbeafe;color:#1e40af}
+.alert-success{background:#d1fae5;color:#065f46}
+.alert-warning{background:#fef3c7;color:#92400e}
+.section-title{font-size:1.1rem;font-weight:700;color:#1a3a6b;margin-bottom:1rem}
+input[type=number]{-moz-appearance:textfield}
+</style>
+</head>
+<body>
+
+<!-- ===== AUTH ===== -->
+<div id="authSection" class="auth-wrap">
+  <div class="auth-box">
+    <h1>&#127970; UGEL Huánuco</h1>
+    <p class="sub">Sistema de Gestión de Solicitudes</p>
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="switchAuthTab('login')">Iniciar Sesión</div>
+      <div class="auth-tab" onclick="switchAuthTab('register')">Registrarse</div>
+    </div>
+    <!-- LOGIN -->
+    <div id="loginForm">
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="loginEmail" placeholder="usuario@ugel.edu.pe" value="usuario@ugel.edu.pe">
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="loginPass" placeholder="••••••••" value="123456">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="doLogin()">Ingresar</button>
+      <p style="font-size:0.75rem;color:#888;margin-top:0.8rem;text-align:center">Credenciales demo: usuario@ugel.edu.pe / 123456</p>
+    </div>
+    <!-- REGISTER -->
+    <div id="registerForm" class="hidden">
+      <div class="form-group"><label>Nombre completo</label><input type="text" id="regNombre" placeholder="Juan Pérez"></div>
+      <div class="form-group"><label>Correo electrónico</label><input type="email" id="regEmail" placeholder="usuario@ugel.edu.pe"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="regPass" placeholder="Mínimo 6 caracteres"></div>
+      <button class="btn btn-primary btn-full" onclick="doRegister()">Crear cuenta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ROLE SELECT (after login, before main) ===== -->
+<div id="roleSection" class="hidden" style="min-height:100vh;background:#f0f2f5;display:flex;align-items:center;justify-content:center">
+  <div class="role-panel">
+    <h3>&#128272; Área de acceso</h3>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:1rem">Selecciona tu área o accede con código para roles especiales</p>
+    <div class="form-group">
+      <label>Ir a mi área</label>
+      <select id="roleSelect">
+        <option value="">-- Seleccionar área --</option>
+        <option value="peticion">Petición (empleado)</option>
+        <option value="jefe">Jefe de Área</option>
+        <option value="administracion">Administración</option>
+        <option value="logistica">Logística</option>
+        <option value="almacen">Almacén</option>
+        <option value="patrimonio">Patrimonio</option>
+      </select>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="goToRole()">Ir a mi cargo</button>
+    <div id="rolePinBox" class="hidden" style="margin-top:1rem">
+      <div class="form-group">
+        <label>Código de acceso</label>
+        <input type="password" id="rolePin" placeholder="Ingresa el código (1111)" maxlength="4">
+      </div>
+      <button class="btn btn-success btn-full" onclick="verifyPin()">Confirmar acceso</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="mainApp" class="main-wrap hidden">
+  <div class="topbar">
+    <div>
+      <strong id="appAreaTitle">UGEL Huánuco</strong>
+      <span style="margin-left:1rem;opacity:0.7;font-size:0.82rem" id="appSubtitle">Sistema de Gestión</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:1rem">
+      <span class="user-info" id="topbarUser"></span>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.3)" onclick="goBack()">&#8592; Cambiar área</button>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3)" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- ==== PETICION ==== -->
+    <div id="areaPeticion" class="hidden">
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('peticion','tabNueva')">Nueva Solicitud</button>
+        <button class="tab-btn" onclick="switchTab('peticion','tabMisSolicitudes')">Mis Solicitudes</button>
+      </div>
+      <div id="tabNueva" class="tab-content active">
+        <div class="card">
+          <h3>&#128203; Nueva Solicitud de Bienes/Suministros</h3>
+          <div class="grid-3">
+            <div class="form-group">
+              <label>N° de Solicitud</label>
+              <input type="text" id="nroSolicitud" readonly style="background:#f5f5f5">
+            </div>
+            <div class="form-group">
+              <label>Fecha</label>
+              <input type="text" id="fechaSolicitud" readonly style="background:#f5f5f5">
+            </div>
+            <div class="form-group">
+              <label>Solicitante</label>
+              <input type="text" id="solicitanteNombre" placeholder="Tu nombre completo">
+            </div>
+          </div>
+          <div class="grid-3">
+            <div class="form-group">
+              <label>Área solicitante</label>
+              <select id="solicitanteArea">
+                <option value="">-- Seleccionar --</option>
+                <option>Almacén</option>
+                <option>Logística</option>
+                <option>Administración</option>
+                <option>Patrimonio</option>
+                <option>Jefe de Área</option>
+                <option>Dirección</option>
+                <option>RRHH</option>
+                <option>Contabilidad</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Meta presupuestal</label>
+              <select id="metaPresupuestal">
+                <option value="">-- Seleccionar --</option>
+                <option value="MP001">MP001 - Gestión Administrativa</option>
+                <option value="MP002">MP002 - Mejora de Servicios Educativos</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>&#128230; Agregar Ítem</h3>
+          <div class="grid-4">
+            <div class="form-group">
+              <label>Ítem</label>
+              <select id="itemSelect" onchange="fillItemData()">
+                <option value="">-- Seleccionar --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Código</label>
+              <input type="text" id="itemCodigo" readonly style="background:#f5f5f5">
+            </div>
+            <div class="form-group">
+              <label>Tipo</label>
+              <input type="text" id="itemTipo" readonly style="background:#f5f5f5">
+            </div>
+            <div class="form-group">
+              <label>Unidad</label>
+              <input type="text" id="itemUnidad" readonly style="background:#f5f5f5">
+            </div>
+          </div>
+          <div class="grid-4">
+            <div class="form-group">
+              <label>Precio unit. (S/)</label>
+              <input type="text" id="itemPrecio" readonly style="background:#f5f5f5">
+            </div>
+            <div class="form-group">
+              <label>Cantidad</label>
+              <input type="number" id="itemCantidad" min="1" value="1">
+            </div>
+            <div class="form-group" style="align-self:flex-end">
+              <label>&nbsp;</label>
+              <button class="btn btn-primary btn-full" onclick="agregarItem()">&#43; Agregar ítem</button>
+            </div>
+          </div>
+          <div id="itemsTablaWrap" class="tbl-wrap" style="margin-top:1rem">
+            <table id="itemsTabla">
+              <thead><tr>
+                <th>#</th><th>Código</th><th>Nombre</th><th>Tipo</th><th>Unidad</th>
+                <th>Cant.</th><th>P. Unit (S/)</th><th>Total (S/)</th><th>Acción</th>
+              </tr></thead>
+              <tbody id="itemsTbody"></tbody>
+            </table>
+          </div>
+          <div style="text-align:right;margin-top:0.8rem;font-weight:700;color:#1a3a6b" id="totalSolicitud">Total: S/ 0.00</div>
+          <div style="margin-top:1rem">
+            <button class="btn btn-success" onclick="generarSolicitud()">&#128228; Generar Solicitud</button>
+          </div>
+        </div>
+      </div>
+      <div id="tabMisSolicitudes" class="tab-content">
+        <div class="card">
+          <h3>&#128203; Mis Solicitudes enviadas</h3>
+          <div class="tbl-wrap">
+            <table><thead><tr><th>N° Solicitud</th><th>Fecha</th><th>Área</th><th>Meta</th><th>Total</th><th>Estado</th></tr></thead>
+            <tbody id="misSolicitudesTbody"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==== JEFE DE AREA ==== -->
+    <div id="areaJefe" class="hidden">
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('jefe','tabJefePedidos')">Pedidos recibidos</button>
+      </div>
+      <div id="tabJefePedidos" class="tab-content active">
+        <div class="card">
+          <h3>&#128203; Solicitudes por área</h3>
+          <div class="form-group" style="max-width:300px">
+            <label>Filtrar por área</label>
+            <select id="filtroAreaJefe" onchange="filtrarPedidosJefe()">
+              <option value="">-- Todas las áreas --</option>
+              <option>Almacén</option><option>Logística</option><option>Administración</option>
+              <option>Patrimonio</option><option>Dirección</option><option>RRHH</option><option>Contabilidad</option>
+            </select>
+          </div>
+          <div class="tbl-wrap">
+            <table><thead><tr>
+              <th>N° Solicitud</th><th>Fecha</th><th>Solicitante</th><th>Área</th><th>Meta</th><th>Total</th><th>Estado</th><th>Ver detalle</th><th>Acciones</th>
+            </tr></thead>
+            <tbody id="jefePedidosTbody"></tbody></table>
+          </div>
+        </div>
+        <div class="card hidden" id="jefeDetallCard">
+          <h3>&#128269; Detalle de solicitud</h3>
+          <div id="jefeDetallInfo"></div>
+          <div class="tbl-wrap" style="margin-top:0.8rem">
+            <table><thead><tr><th>Código</th><th>Nombre</th><th>Tipo</th><th>Unidad</th><th>Cant.</th><th>P.Unit</th><th>Total</th></tr></thead>
+            <tbody id="jefeDetallTbody"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /mainApp -->
+
+<!-- MODAL genérico -->
+<div id="modalOverlay" class="modal-overlay hidden">
+  <div class="modal-box">
+    <h3 id="modalTitle">Información</h3>
+    <div id="modalBody"></div>
+    <div style="text-align:right;margin-top:1rem">
+      <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+const ITEMS_CATALOG = [
+  {id:'IT001',nombre:'Alcohol isopropílico 1L',tipo:'Suministro',unidad:'Frasco',precio:15.50},
+  {id:'IT002',nombre:'Papel bond A4 (500 hj)',tipo:'Suministro',unidad:'Resma',precio:22.00},
+  {id:'IT003',nombre:'Tóner HP LaserJet',tipo:'Suministro',unidad:'Unidad',precio:85.00},
+  {id:'IT004',nombre:'Plumones gruesos x12',tipo:'Suministro',unidad:'Caja',precio:18.00},
+  {id:'IT005',nombre:'Archivador palanca A4',tipo:'Suministro',unidad:'Unidad',precio:8.50},
+  {id:'IT006',nombre:'Grapas 26/6 x5000',tipo:'Suministro',unidad:'Caja',precio:6.00},
+  {id:'IT007',nombre:'Cinta adhesiva transparente',tipo:'Suministro',unidad:'Rollo',precio:3.50},
+  {id:'IT008',nombre:'Lapiceros azul x50',tipo:'Suministro',unidad:'Caja',precio:25.00},
+  {id:'IT009',nombre:'Folder manila A4 x50',tipo:'Suministro',unidad:'Paquete',precio:12.00},
+  {id:'IT010',nombre:'Corrector líquido x6',tipo:'Suministro',unidad:'Pack',precio:14.00},
+  {id:'IT011',nombre:'Computadora de escritorio',tipo:'Bien',unidad:'Unidad',precio:1850.00},
+  {id:'IT012',nombre:'Impresora multifuncional',tipo:'Bien',unidad:'Unidad',precio:650.00},
+  {id:'IT013',nombre:'Silla ergonómica',tipo:'Bien',unidad:'Unidad',precio:280.00},
+  {id:'IT014',nombre:'Escritorio de madera',tipo:'Bien',unidad:'Unidad',precio:420.00},
+  {id:'IT015',nombre:'Proyector multimedia',tipo:'Bien',unidad:'Unidad',precio:1200.00},
+  {id:'IT016',nombre:'Teléfono IP',tipo:'Bien',unidad:'Unidad',precio:180.00},
+  {id:'IT017',nombre:'Estante metálico 5 niveles',tipo:'Bien',unidad:'Unidad',precio:320.00},
+  {id:'IT018',nombre:'Aire acondicionado 12000 BTU',tipo:'Bien',unidad:'Unidad',precio:1500.00},
+  {id:'IT019',nombre:'UPS 1200VA',tipo:'Bien',unidad:'Unidad',precio:350.00},
+  {id:'IT020',nombre:'Cámara de seguridad IP',tipo:'Bien',unidad:'Unidad',precio:220.00}
+];
+
+let state = {
+  currentUser: null,
+  currentArea: null,
+  solicitudes: JSON.parse(localStorage.getItem('solicitudes')||'[]'),
+  solicitudCounter: parseInt(localStorage.getItem('solicCounter')||'1000'),
+  itemsEnSolicitud: []
+};
+
+function saveState(){
+  localStorage.setItem('solicitudes', JSON.stringify(state.solicitudes));
+  localStorage.setItem('solicCounter', state.solicitudCounter);
+}
+
+// ===== AUTH =====
+function switchAuthTab(tab){
+  document.getElementById('loginForm').classList.toggle('hidden', tab!=='login');
+  document.getElementById('registerForm').classList.toggle('hidden', tab!=='register');
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>{
+    t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register'));
+  });
+}
+
+function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if(!email||!pass){alert('Completa todos los campos');return;}
+  state.currentUser = {email, nombre: email.split('@')[0]};
+  document.getElementById('authSection').classList.add('hidden');
+  document.getElementById('roleSection').classList.remove('hidden');
+  document.getElementById('roleSection').style.display='flex';
+}
+
+function doRegister(){
+  const nombre = document.getElementById('regNombre').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pass = document.getElementById('regPass').value;
+  if(!nombre||!email||!pass){alert('Completa todos los campos');return;}
+  if(pass.length<6){alert('Contraseña mínimo 6 caracteres');return;}
+  state.currentUser = {email, nombre};
+  document.getElementById('authSection').classList.add('hidden');
+  document.getElementById('roleSection').classList.remove('hidden');
+  document.getElementById('roleSection').style.display='flex';
+}
+
+function doLogout(){
+  state.currentUser=null; state.currentArea=null;
+  document.getElementById('mainApp').classList.add('hidden');
+  document.getElementById('authSection').classList.remove('hidden');
+}
+
+function goBack(){
+  document.getElementById('mainApp').classList.add('hidden');
+  document.getElementById('roleSection').classList.remove('hidden');
+  document.getElementById('roleSection').style.display='flex';
+}
+
+// ===== ROLE =====
+const PROTECTED_ROLES = ['jefe','administracion','logistica','almacen','patrimonio'];
+
+function goToRole(){
+  const rol = document.getElementById('roleSelect').value;
+  if(!rol){alert('Selecciona un área');return;}
+  if(rol==='peticion'){
+    enterArea('peticion');
+  } else {
+    document.getElementById('rolePinBox').classList.remove('hidden');
+  }
+}
+
+function verifyPin(){
+  const pin = document.getElementById('rolePin').value;
+  const rol = document.getElementById('roleSelect').value;
+  if(pin==='1111'){
+    enterArea(rol);
+  } else {
+    alert('Código incorrecto. Intenta de nuevo.');
+  }
+}
+
+function enterArea(area){
+  state.currentArea = area;
+  document.getElementById('roleSection').style.display='none';
+  document.getElementById('roleSection').classList.add('hidden');
+  document.getElementById('mainApp').classList.remove('hidden');
+
+  const names = {peticion:'Peticiones',jefe:'Jefe de Área',administracion:'Administración',
+    logistica:'Logística',almacen:'Almacén',patrimonio:'Patrimonio'};
+  document.getElementById('appAreaTitle').textContent = names[area]||area;
+  document.getElementById('topbarUser').textContent = state.currentUser?.nombre||'';
+  document.getElementById('appSubtitle').textContent = 'UGEL Huánuco';
+
+  // Hide all areas
+  ['areaPeticion','areaJefe'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.classList.add('hidden');
+  });
+
+  if(area==='peticion'){
+    document.getElementById('areaPeticion').classList.remove('hidden');
+    initPeticion();
+  } else if(area==='jefe'){
+    document.getElementById('areaJefe').classList.remove('hidden');
+    initJefe();
+  } else {
+    // Redirect to separate files
+    const urls = {
+      administracion:'administracion.html',
+      logistica:'logistica.html',
+      almacen:'almacen.html',
+      patrimonio:'patrimonio.html'
+    };
+    if(urls[area]) window.location.href = urls[area];
+  }
+  document.getElementById('rolePinBox').classList.add('hidden');
+  document.getElementById('rolePin').value='';
+}
+
+// ===== PETICION =====
+function initPeticion(){
+  // Auto fill
+  state.solicitudCounter++;
+  document.getElementById('nroSolicitud').value = 'SOL-'+String(state.solicitudCounter).padStart(5,'0');
+  const now = new Date();
+  document.getElementById('fechaSolicitud').value = now.toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric'});
+  document.getElementById('solicitanteNombre').value = state.currentUser?.nombre||'';
+
+  // Fill item select
+  const sel = document.getElementById('itemSelect');
+  sel.innerHTML = '<option value="">-- Seleccionar ítem --</option>';
+  ITEMS_CATALOG.forEach(it=>{
+    const opt = document.createElement('option');
+    opt.value=it.id; opt.textContent=`[${it.tipo[0]}] ${it.nombre}`;
+    sel.appendChild(opt);
+  });
+
+  state.itemsEnSolicitud = [];
+  renderItemsTabla();
+  renderMisSolicitudes();
+}
+
+function fillItemData(){
+  const id = document.getElementById('itemSelect').value;
+  const it = ITEMS_CATALOG.find(x=>x.id===id);
+  if(!it){
+    ['itemCodigo','itemTipo','itemUnidad','itemPrecio'].forEach(f=>document.getElementById(f).value='');
+    return;
+  }
+  document.getElementById('itemCodigo').value=it.id;
+  document.getElementById('itemTipo').value=it.tipo;
+  document.getElementById('itemUnidad').value=it.unidad;
+  document.getElementById('itemPrecio').value='S/ '+it.precio.toFixed(2);
+  document.getElementById('itemCantidad').value=1;
+}
+
+function agregarItem(){
+  const id = document.getElementById('itemSelect').value;
+  if(!id){alert('Selecciona un ítem');return;}
+  const cant = parseInt(document.getElementById('itemCantidad').value)||1;
+  const it = ITEMS_CATALOG.find(x=>x.id===id);
+  const existing = state.itemsEnSolicitud.find(x=>x.id===id);
+  if(existing){
+    existing.cantidad+=cant;
+    existing.total=existing.cantidad*it.precio;
+  } else {
+    state.itemsEnSolicitud.push({...it,cantidad:cant,total:cant*it.precio});
+  }
+  renderItemsTabla();
+}
+
+function quitarItem(id){
+  state.itemsEnSolicitud = state.itemsEnSolicitud.filter(x=>x.id!==id);
+  renderItemsTabla();
+}
+
+function renderItemsTabla(){
+  const tbody = document.getElementById('itemsTbody');
+  tbody.innerHTML='';
+  let total=0;
+  state.itemsEnSolicitud.forEach((it,i)=>{
+    total+=it.total;
+    tbody.innerHTML+=`<tr>
+      <td>${i+1}</td><td>${it.id}</td><td>${it.nombre}</td><td><span class="badge ${it.tipo==='Bien'?'badge-sent':'badge-pending'}">${it.tipo}</span></td>
+      <td>${it.unidad}</td><td>${it.cantidad}</td><td>S/ ${it.precio.toFixed(2)}</td><td>S/ ${it.total.toFixed(2)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="quitarItem('${it.id}')">&#10006;</button></td>
+    </tr>`;
+  });
+  document.getElementById('totalSolicitud').textContent='Total: S/ '+total.toFixed(2);
+}
+
+function generarSolicitud(){
+  if(state.itemsEnSolicitud.length===0){alert('Agrega al menos un ítem');return;}
+  const nombre = document.getElementById('solicitanteNombre').value.trim();
+  const area = document.getElementById('solicitanteArea').value;
+  const meta = document.getElementById('metaPresupuestal').value;
+  if(!nombre||!area||!meta){alert('Completa nombre, área y meta presupuestal');return;}
+
+  const total = state.itemsEnSolicitud.reduce((s,x)=>s+x.total,0);
+  const solicitud = {
+    id: document.getElementById('nroSolicitud').value,
+    fecha: document.getElementById('fechaSolicitud').value,
+    solicitante: nombre,
+    area, meta, total,
+    items: JSON.parse(JSON.stringify(state.itemsEnSolicitud)),
+    estado: 'Pendiente',
+    timestamp: Date.now()
+  };
+  state.solicitudes.push(solicitud);
+  saveState();
+
+  alert('✓ Solicitud '+solicitud.id+' enviada al Jefe de Área correctamente.');
+  state.itemsEnSolicitud=[];
+  initPeticion();
+  switchTab('peticion','tabMisSolicitudes');
+}
+
+function renderMisSolicitudes(){
+  const tbody = document.getElementById('misSolicitudesTbody');
+  const mine = state.solicitudes.filter(s=>s.solicitante===state.currentUser?.nombre||true);
+  tbody.innerHTML = mine.length===0
+    ? '<tr><td colspan="6" style="text-align:center;color:#999">Sin solicitudes registradas</td></tr>'
+    : mine.map(s=>`<tr>
+        <td>${s.id}</td><td>${s.fecha}</td><td>${s.area}</td><td>${s.meta}</td>
+        <td>S/ ${s.total.toFixed(2)}</td>
+        <td><span class="badge ${s.estado==='Pendiente'?'badge-pending':s.estado==='Aprobado'?'badge-approved':'badge-rejected'}">${s.estado}</span></td>
+      </tr>`).join('');
+}
+
+// ===== JEFE DE AREA =====
+function initJefe(){
+  filtrarPedidosJefe();
+}
+
+function filtrarPedidosJefe(){
+  const filtro = document.getElementById('filtroAreaJefe').value;
+  const tbody = document.getElementById('jefePedidosTbody');
+  let pedidos = state.solicitudes.filter(s=>s.estado==='Pendiente'||s.estado==='Pendiente-Jefe');
+  if(filtro) pedidos = pedidos.filter(s=>s.area===filtro);
+  tbody.innerHTML = pedidos.length===0
+    ? '<tr><td colspan="9" style="text-align:center;color:#999">No hay solicitudes pendientes</td></tr>'
+    : pedidos.map(s=>`<tr>
+        <td>${s.id}</td><td>${s.fecha}</td><td>${s.solicitante}</td><td>${s.area}</td><td>${s.meta}</td>
+        <td>S/ ${s.total.toFixed(2)}</td>
+        <td><span class="badge badge-pending">Pendiente</span></td>
+        <td><button class="btn btn-secondary btn-sm" onclick="verDetalleJefe('${s.id}')">&#128269; Ver</button></td>
+        <td class="row-btns">
+          <button class="btn btn-success btn-sm" onclick="aprobarJefe('${s.id}')">&#10003; Aprobar</button>
+          <button class="btn btn-danger btn-sm" onclick="rechazarJefe('${s.id}')">&#10006; Rechazar</button>
+        </td>
+      </tr>`).join('');
+}
+
+function verDetalleJefe(id){
+  const s = state.solicitudes.find(x=>x.id===id);
+  if(!s) return;
+  const card = document.getElementById('jefeDetallCard');
+  card.classList.remove('hidden');
+  document.getElementById('jefeDetallInfo').innerHTML=`
+    <div class="grid-3">
+      <div><strong>N° Solicitud:</strong> ${s.id}</div>
+      <div><strong>Fecha:</strong> ${s.fecha}</div>
+      <div><strong>Solicitante:</strong> ${s.solicitante}</div>
+      <div><strong>Área:</strong> ${s.area}</div>
+      <div><strong>Meta:</strong> ${s.meta}</div>
+      <div><strong>Total:</strong> S/ ${s.total.toFixed(2)}</div>
+    </div>`;
+  document.getElementById('jefeDetallTbody').innerHTML=s.items.map(it=>`<tr>
+    <td>${it.id}</td><td>${it.nombre}</td><td>${it.tipo}</td><td>${it.unidad}</td>
+    <td>${it.cantidad}</td><td>S/ ${it.precio.toFixed(2)}</td><td>S/ ${it.total.toFixed(2)}</td>
+  </tr>`).join('');
+  card.scrollIntoView({behavior:'smooth'});
+}
+
+function aprobarJefe(id){
+  const s = state.solicitudes.find(x=>x.id===id);
+  if(!s) return;
+  s.estado='Aprobado-Jefe';
+  saveState();
+  alert('✓ Solicitud '+id+' aprobada. Enviada a Administración.');
+  document.getElementById('jefeDetallCard').classList.add('hidden');
+  filtrarPedidosJefe();
+}
+
+function rechazarJefe(id){
+  if(!confirm('¿Rechazar la solicitud '+id+'? Se eliminará.')) return;
+  state.solicitudes = state.solicitudes.filter(x=>x.id!==id);
+  saveState();
+  document.getElementById('jefeDetallCard').classList.add('hidden');
+  filtrarPedidosJefe();
+}
+
+// ===== TABS =====
+function switchTab(area, tabId){
+  const areaEl = document.getElementById('area'+area.charAt(0).toUpperCase()+area.slice(1));
+  if(!areaEl) return;
+  areaEl.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  areaEl.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(tabId)?.classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ===== MODAL =====
+function showModal(title, body){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=body;
+  document.getElementById('modalOverlay').classList.remove('hidden');
+}
+function closeModal(){document.getElementById('modalOverlay').classList.add('hidden');}
+</script>
+</body>
+</html>

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logística - UGEL Huánuco</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f0f2f5;color:#222;font-size:14px}
+.hidden{display:none!important}
+.topbar{background:#1a3a6b;color:#fff;padding:0.7rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.content{padding:1.5rem}
+.tab-bar{display:flex;gap:0.5rem;margin-bottom:1.5rem;border-bottom:2px solid #d1d5db;flex-wrap:wrap}
+.tab-btn{padding:0.55rem 1.1rem;border:none;background:none;cursor:pointer;font-size:0.85rem;color:#555;border-bottom:3px solid transparent;margin-bottom:-2px;border-radius:6px 6px 0 0}
+.tab-btn.active{color:#1a3a6b;font-weight:700;border-bottom-color:#1a3a6b;background:#e8eef7}
+.tab-content{display:none}.tab-content.active{display:block}
+.card{background:#fff;border-radius:10px;padding:1.2rem 1.4rem;margin-bottom:1rem;box-shadow:0 1px 4px rgba(0,0,0,0.07)}
+.card h3{font-size:1rem;color:#1a3a6b;margin-bottom:0.8rem;border-bottom:1.5px solid #e0e7ef;padding-bottom:0.5rem}
+.btn{display:inline-block;padding:0.5rem 1.1rem;border:none;border-radius:7px;cursor:pointer;font-size:0.85rem;font-weight:600;transition:all 0.2s}
+.btn-primary{background:#1a3a6b;color:#fff}.btn-secondary{background:#e0e7ef;color:#1a3a6b}
+.btn-danger{background:#c0392b;color:#fff}.btn-success{background:#1a7a4a;color:#fff}
+.btn-warning{background:#d97706;color:#fff}.btn-info{background:#0369a1;color:#fff}
+.btn-sm{padding:0.3rem 0.8rem;font-size:0.78rem}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:0.8rem}
+table th{background:#1a3a6b;color:#fff;padding:0.5rem 0.6rem;text-align:left;white-space:nowrap}
+table td{padding:0.45rem 0.6rem;border-bottom:1px solid #eee;vertical-align:middle}
+table tr:hover td{background:#f5f8ff}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:0.73rem;font-weight:700}
+.badge-pending{background:#fef3c7;color:#92400e}
+.badge-approved{background:#d1fae5;color:#065f46}
+.badge-rejected{background:#fee2e2;color:#991b1b}
+.badge-sent{background:#dbeafe;color:#1e40af}
+.badge-low{background:#fee2e2;color:#991b1b}
+.badge-ok{background:#d1fae5;color:#065f46}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:0.8rem}
+.row-btns{display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center}
+.form-group{margin-bottom:0.8rem}
+.form-group label{display:block;font-size:0.8rem;color:#555;margin-bottom:0.3rem;font-weight:600}
+.form-group input,.form-group select{width:100%;padding:0.5rem 0.7rem;border:1.5px solid #ccc;border-radius:7px;font-size:0.85rem;outline:none}
+.stat-box{background:#fff;border-radius:10px;padding:1rem;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.07)}
+.stat-box .val{font-size:1.5rem;font-weight:700;color:#1a3a6b}
+.stat-box .lbl{font-size:0.75rem;color:#666;margin-top:0.2rem}
+.budget-bar{background:#e0e7ef;border-radius:10px;height:18px;overflow:hidden;margin:0.5rem 0}
+.budget-fill{height:100%;background:linear-gradient(90deg,#1a7a4a,#25a366);border-radius:10px;transition:width 0.5s}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div><strong>&#128666; Logística</strong> <span style="margin-left:1rem;opacity:0.7;font-size:0.82rem">UGEL Huánuco</span></div>
+  <div style="display:flex;gap:0.8rem;align-items:center">
+    <span style="font-size:0.82rem;opacity:0.85">Presupuesto: <strong id="budgetDisplay">S/ 10,000.00</strong></span>
+    <button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.3)" onclick="window.location.href='sistema.html'">&#8592; Volver</button>
+  </div>
+</div>
+<div class="content">
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="setTab('tabLogPedidos',this)">&#128203; Pedidos aprobados</button>
+    <button class="tab-btn" onclick="setTab('tabLogCotizacion',this)">&#128200; Cotización</button>
+    <button class="tab-btn" onclick="setTab('tabLogStock',this)">&#128230; Stock</button>
+  </div>
+
+  <!-- TAB PEDIDOS -->
+  <div id="tabLogPedidos" class="tab-content active">
+    <div class="grid-4" style="margin-bottom:1rem">
+      <div class="stat-box"><div class="val" id="statPedidos">0</div><div class="lbl">Pedidos aprobados</div></div>
+      <div class="stat-box"><div class="val" id="statPresupuesto">S/ 10,000</div><div class="lbl">Presupuesto disponible</div></div>
+      <div class="stat-box"><div class="val" id="statGastado">S/ 0</div><div class="lbl">Gastado</div></div>
+      <div class="stat-box"><div class="val" id="statItems">0</div><div class="lbl">Ítems totales</div></div>
+    </div>
+    <div class="card">
+      <h3>Solicitudes aprobadas por Administración</h3>
+      <div class="tbl-wrap">
+        <table><thead><tr>
+          <th>N° Solicitud</th><th>Fecha</th><th>Solicitante</th><th>Área</th><th>Ítems</th><th>Total</th><th>Estado</th><th>Ver detalle</th>
+        </tr></thead>
+        <tbody id="logPedidosTbody"></tbody></table>
+      </div>
+    </div>
+    <div class="card hidden" id="logDetallCard">
+      <h3>&#128269; Detalle de solicitud</h3>
+      <div id="logDetallInfo"></div>
+      <div class="tbl-wrap" style="margin-top:0.8rem">
+        <table><thead><tr><th>Código</th><th>Nombre</th><th>Tipo</th><th>Unidad</th><th>Cant. Sol.</th><th>Stock actual</th><th>¿Necesita compra?</th><th>P.Unit</th><th>Total</th></tr></thead>
+        <tbody id="logDetallTbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB COTIZACION -->
+  <div id="tabLogCotizacion" class="tab-content">
+    <div class="card">
+      <h3>&#128200; Tabla de cotización - Catálogo de 20 ítems</h3>
+      <p style="font-size:0.82rem;color:#666;margin-bottom:1rem">Selecciona ítems para ver precios en ambas distribuidoras. Usa "Cotizar automáticamente" para seleccionar la más económica.</p>
+      <div style="margin-bottom:1rem;display:flex;gap:0.8rem;flex-wrap:wrap">
+        <button class="btn btn-info" onclick="cotizarAutomatico()">&#9889; Cotizar automáticamente</button>
+        <button class="btn btn-success" onclick="enviarCompra()">&#128666; Enviar orden de compra a Administración</button>
+      </div>
+      <div class="tbl-wrap">
+        <table><thead><tr>
+          <th>Selec.</th><th>Código</th><th>Nombre</th><th>Tipo</th><th>Unidad</th>
+          <th>Precio Huánuco SAC (S/)</th><th>Precio Amazonas SAC (S/)</th><th>Mejor precio</th><th>Proveedor elegido</th>
+        </tr></thead>
+        <tbody id="cotizTbody"></tbody></table>
+      </div>
+    </div>
+    <div class="card hidden" id="ordenCompraCard">
+      <h3>&#128221; Orden de compra generada</h3>
+      <div id="ordenCompraInfo"></div>
+      <div class="tbl-wrap" style="margin-top:0.8rem">
+        <table><thead><tr><th>Cód.Compra</th><th>Proveedor</th><th>Código ítem</th><th>Nombre</th><th>Cant.</th><th>P.Unit</th><th>Total</th></tr></thead>
+        <tbody id="ordenCompraTbody"></tbody></table>
+      </div>
+      <div style="text-align:right;margin-top:0.8rem;font-weight:700;color:#1a3a6b" id="ordenTotal"></div>
+    </div>
+  </div>
+
+  <!-- TAB STOCK -->
+  <div id="tabLogStock" class="tab-content">
+    <div class="card">
+      <h3>&#128230; Stock de Logística</h3>
+      <p style="font-size:0.82rem;color:#666;margin-bottom:1rem">Stock actualizado desde Almacén. El sistema verifica si es necesario realizar compras.</p>
+      <div class="tbl-wrap">
+        <table><thead><tr>
+          <th>Código</th><th>Nombre</th><th>Tipo</th><th>Unidad</th><th>Stock actual</th><th>Estado</th>
+        </tr></thead>
+        <tbody id="stockTbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ITEMS_CATALOG = [
+  {id:'IT001',nombre:'Alcohol isopropílico 1L',tipo:'Suministro',unidad:'Frasco',precioHuanuco:14.50,precioAmazonas:15.80},
+  {id:'IT002',nombre:'Papel bond A4 (500 hj)',tipo:'Suministro',unidad:'Resma',precioHuanuco:21.00,precioAmazonas:19.50},
+  {id:'IT003',nombre:'Tóner HP LaserJet',tipo:'Suministro',unidad:'Unidad',precioHuanuco:82.00,precioAmazonas:88.00},
+  {id:'IT004',nombre:'Plumones gruesos x12',tipo:'Suministro',unidad:'Caja',precioHuanuco:17.00,precioAmazonas:16.50},
+  {id:'IT005',nombre:'Archivador palanca A4',tipo:'Suministro',unidad:'Unidad',precioHuanuco:8.00,precioAmazonas:8.80},
+  {id:'IT006',nombre:'Grapas 26/6 x5000',tipo:'Suministro',unidad:'Caja',precioHuanuco:5.80,precioAmazonas:6.20},
+  {id:'IT007',nombre:'Cinta adhesiva transparente',tipo:'Suministro',unidad:'Rollo',precioHuanuco:3.20,precioAmazonas:3.50},
+  {id:'IT008',nombre:'Lapiceros azul x50',tipo:'Suministro',unidad:'Caja',precioHuanuco:24.00,precioAmazonas:26.00},
+  {id:'IT009',nombre:'Folder manila A4 x50',tipo:'Suministro',unidad:'Paquete',precioHuanuco:11.50,precioAmazonas:12.50},
+  {id:'IT010',nombre:'Corrector líquido x6',tipo:'Suministro',unidad:'Pack',precioHuanuco:13.00,precioAmazonas:14.50},
+  {id:'IT011',nombre:'Computadora de escritorio',tipo:'Bien',unidad:'Unidad',precioHuanuco:1800.00,precioAmazonas:1750.00},
+  {id:'IT012',nombre:'Impresora multifuncional',tipo:'Bien',unidad:'Unidad',precioHuanuco:630.00,precioAmazonas:610.00},
+  {id:'IT013',nombre:'Silla ergonómica',tipo:'Bien',unidad:'Unidad',precioHuanuco:270.00,precioAmazonas:285.00},
+  {id:'IT014',nombre:'Escritorio de madera',tipo:'Bien',unidad:'Unidad',precioHuanuco:410.00,precioAmazonas:430.00},
+  {id:'IT015',nombre:'Proyector multimedia',tipo:'Bien',unidad:'Unidad',precioHuanuco:1150.00,precioAmazonas:1200.00},
+  {id:'IT016',nombre:'Teléfono IP',tipo:'Bien',unidad:'Unidad',precioHuanuco:175.00,precioAmazonas:182.00},
+  {id:'IT017',nombre:'Estante metálico 5 niveles',tipo:'Bien',unidad:'Unidad',precioHuanuco:310.00,precioAmazonas:325.00},
+  {id:'IT018',nombre:'Aire acondicionado 12000 BTU',tipo:'Bien',unidad:'Unidad',precioHuanuco:1480.00,precioAmazonas:1520.00},
+  {id:'IT019',nombre:'UPS 1200VA',tipo:'Bien',unidad:'Unidad',precioHuanuco:340.00,precioAmazonas:355.00},
+  {id:'IT020',nombre:'Cámara de seguridad IP',tipo:'Bien',unidad:'Unidad',precioHuanuco:215.00,precioAmazonas:225.00}
+];
+
+let budget = parseFloat(localStorage.getItem('logBudget')||'10000');
+let gastado = parseFloat(localStorage.getItem('logGastado')||'0');
+let compraCounter = parseInt(localStorage.getItem('compraCounter')||'1');
+let proveedorElegido = {}; // itemId -> proveedor
+
+function getSolicitudes(){return JSON.parse(localStorage.getItem('solicitudes')||'[]');}
+function getStock(){return JSON.parse(localStorage.getItem('almacenStock')||'{}');}
+function getCompras(){return JSON.parse(localStorage.getItem('compras')||'[]');}
+function saveCompras(d){localStorage.setItem('compras',JSON.stringify(d));}
+
+// Budget increment
+setInterval(()=>{
+  budget+=10;
+  localStorage.setItem('logBudget',budget);
+  updateBudgetDisplay();
+},5000);
+
+function updateBudgetDisplay(){
+  document.getElementById('budgetDisplay').textContent='S/ '+budget.toLocaleString('es-PE',{minimumFractionDigits:2});
+  document.getElementById('statPresupuesto').textContent='S/ '+budget.toLocaleString('es-PE',{minimumFractionDigits:0});
+}
+
+function setTab(id,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='tabLogPedidos') loadPedidos();
+  if(id==='tabLogCotizacion') loadCotizacion();
+  if(id==='tabLogStock') loadStock();
+}
+
+function loadPedidos(){
+  const solic = getSolicitudes().filter(s=>s.estado==='Aprobado-Admi');
+  document.getElementById('statPedidos').textContent=solic.length;
+  document.getElementById('statGastado').textContent='S/ '+gastado.toFixed(0);
+  const totalItems = solic.reduce((s,x)=>s+x.items.length,0);
+  document.getElementById('statItems').textContent=totalItems;
+  updateBudgetDisplay();
+
+  const tbody = document.getElementById('logPedidosTbody');
+  tbody.innerHTML = solic.length===0
+    ? '<tr><td colspan="8" style="text-align:center;color:#999">Sin pedidos aprobados por Administración</td></tr>'
+    : solic.map(s=>`<tr>
+        <td>${s.id}</td><td>${s.fecha}</td><td>${s.solicitante}</td><td>${s.area}</td>
+        <td>${s.items.length}</td><td>S/ ${s.total.toFixed(2)}</td>
+        <td><span class="badge badge-approved">Aprobado</span></td>
+        <td><button class="btn btn-secondary btn-sm" onclick="verDetalle('${s.id}')">&#128269; Ver</button></td>
+      </tr>`).join('');
+}
+
+function verDetalle(id){
+  const s = getSolicitudes().find(x=>x.id===id);
+  if(!s) return;
+  const stock = getStock();
+  const card = document.getElementById('logDetallCard');
+  card.classList.remove('hidden');
+  document.getElementById('logDetallInfo').innerHTML=`
+    <div class="grid-3" style="margin-bottom:0.8rem">
+      <div><strong>N° Solicitud:</strong> ${s.id}</div>
+      <div><strong>Solicitante:</strong> ${s.solicitante}</div>
+      <div><strong>Área:</strong> ${s.area}</div>
+    </div>`;
+  document.getElementById('logDetallTbody').innerHTML=s.items.map(it=>{
+    const stockAct = stock[it.id]||0;
+    const necesita = stockAct < it.cantidad;
+    return `<tr>
+      <td>${it.id}</td><td>${it.nombre}</td><td>${it.tipo}</td><td>${it.unidad}</td>
+      <td>${it.cantidad}</td>
+      <td><strong>${stockAct}</strong></td>
+      <td><span class="badge ${necesita?'badge-low':'badge-ok'}">${necesita?'Sí - pedir':'No - en stock'}</span></td>
+      <td>S/ ${it.precio.toFixed(2)}</td><td>S/ ${it.total.toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+  card.scrollIntoView({behavior:'smooth'});
+}
+
+function loadCotizacion(){
+  const tbody = document.getElementById('cotizTbody');
+  tbody.innerHTML = ITEMS_CATALOG.map(it=>{
+    const mejor = it.precioHuanuco<=it.precioAmazonas ? it.precioHuanuco : it.precioAmazonas;
+    const prov = proveedorElegido[it.id]||'';
+    return `<tr id="crow_${it.id}">
+      <td><input type="checkbox" id="chk_${it.id}" onchange="updateCotizRow('${it.id}')"></td>
+      <td>${it.id}</td><td>${it.nombre}</td>
+      <td><span class="badge ${it.tipo==='Bien'?'badge-sent':'badge-pending'}">${it.tipo}</span></td>
+      <td>${it.unidad}</td>
+      <td>S/ ${it.precioHuanuco.toFixed(2)}</td>
+      <td>S/ ${it.precioAmazonas.toFixed(2)}</td>
+      <td style="color:#1a7a4a;font-weight:700">S/ ${mejor.toFixed(2)}</td>
+      <td>
+        <select id="prov_${it.id}" onchange="proveedorElegido['${it.id}']=this.value">
+          <option value="">--</option>
+          <option value="Huánuco SAC" ${prov==='Huánuco SAC'?'selected':''}>Huánuco SAC</option>
+          <option value="Amazonas SAC" ${prov==='Amazonas SAC'?'selected':''}>Amazonas SAC</option>
+        </select>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function updateCotizRow(id){}
+
+function cotizarAutomatico(){
+  ITEMS_CATALOG.forEach(it=>{
+    const mejor = it.precioHuanuco<=it.precioAmazonas ? 'Huánuco SAC' : 'Amazonas SAC';
+    proveedorElegido[it.id]=mejor;
+    const chk = document.getElementById('chk_'+it.id);
+    const sel = document.getElementById('prov_'+it.id);
+    if(chk) chk.checked=true;
+    if(sel) sel.value=mejor;
+  });
+  alert('✓ Cotización automática completada. Se seleccionó el mejor precio para cada ítem.');
+}
+
+function enviarCompra(){
+  const seleccionados = ITEMS_CATALOG.filter(it=>document.getElementById('chk_'+it.id)?.checked);
+  if(seleccionados.length===0){alert('Selecciona al menos un ítem');return;}
+
+  // Agrupar por proveedor
+  const grupos = {};
+  seleccionados.forEach(it=>{
+    const prov = proveedorElegido[it.id]||'Huánuco SAC';
+    if(!grupos[prov]) grupos[prov]=[];
+    grupos[prov].push(it);
+  });
+
+  const compras = getCompras();
+  const fecha = new Date().toLocaleDateString('es-PE');
+  const nuevasCompras = [];
+
+  Object.keys(grupos).forEach(prov=>{
+    const items = grupos[prov].map((it,i)=>{
+      const precio = prov==='Huánuco SAC'?it.precioHuanuco:it.precioAmazonas;
+      const codCompra = 'OC-'+prov.substring(0,3).toUpperCase()+'-'+String(compraCounter).padStart(4,'0')+'-'+String(i+1).padStart(3,'0');
+      return {...it, precio, codCompra, cantidad:1};
+    });
+    const total = items.reduce((s,x)=>s+x.precio,0);
+    const compra = {
+      id:'OC-'+String(compraCounter).padStart(5,'0'),
+      proveedor:prov, fecha,
+      solicitudOrigen:'Cotización directa',
+      items, total, estado:'Cotizado'
+    };
+    compraCounter++;
+    compras.push(compra);
+    nuevasCompras.push(compra);
+  });
+  saveCompras(compras);
+  localStorage.setItem('compraCounter',compraCounter);
+
+  // Show summary
+  const card = document.getElementById('ordenCompraCard');
+  card.classList.remove('hidden');
+  document.getElementById('ordenCompraInfo').innerHTML=`<p style="margin-bottom:0.5rem;font-size:0.85rem;color:#1a3a6b"><strong>Orden(es) generada(s) y enviada(s) a Administración para aprobación.</strong></p>
+  <p style="font-size:0.82rem;color:#555">Proveedores: ${Object.keys(grupos).join(', ')}</p>`;
+
+  let allRows=''; let grandTotal=0;
+  nuevasCompras.forEach(c=>{
+    c.items.forEach(it=>{
+      allRows+=`<tr><td>${it.codCompra}</td><td>${c.proveedor}</td><td>${it.id}</td><td>${it.nombre}</td>
+        <td>1</td><td>S/ ${it.precio.toFixed(2)}</td><td>S/ ${it.precio.toFixed(2)}</td></tr>`;
+      grandTotal+=it.precio;
+    });
+  });
+  document.getElementById('ordenCompraTbody').innerHTML=allRows;
+  document.getElementById('ordenTotal').textContent='Total general: S/ '+grandTotal.toFixed(2);
+  card.scrollIntoView({behavior:'smooth'});
+  alert('✓ Orden de compra enviada a Administración. Pendiente de aprobación.');
+}
+
+function loadStock(){
+  const stock = getStock();
+  const tbody = document.getElementById('stockTbody');
+  tbody.innerHTML = ITEMS_CATALOG.map(it=>{
+    const qty = stock[it.id]||0;
+    return `<tr>
+      <td>${it.id}</td><td>${it.nombre}</td>
+      <td><span class="badge ${it.tipo==='Bien'?'badge-sent':'badge-pending'}">${it.tipo}</span></td>
+      <td>${it.unidad}</td>
+      <td><strong>${qty}</strong></td>
+      <td><span class="badge ${qty<5?'badge-low':'badge-ok'}">${qty<5?'Bajo stock':'OK'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+loadPedidos();
+</script>
+</body>
+</html>

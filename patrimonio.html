@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patrimonio - UGEL Huánuco</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f0f2f5;color:#222;font-size:14px}
+.hidden{display:none!important}
+.topbar{background:#1a3a6b;color:#fff;padding:0.7rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.content{padding:1.5rem}
+.tab-bar{display:flex;gap:0.5rem;margin-bottom:1.5rem;border-bottom:2px solid #d1d5db;flex-wrap:wrap}
+.tab-btn{padding:0.55rem 1.1rem;border:none;background:none;cursor:pointer;font-size:0.85rem;color:#555;border-bottom:3px solid transparent;margin-bottom:-2px;border-radius:6px 6px 0 0}
+.tab-btn.active{color:#1a3a6b;font-weight:700;border-bottom-color:#1a3a6b;background:#e8eef7}
+.tab-content{display:none}.tab-content.active{display:block}
+.card{background:#fff;border-radius:10px;padding:1.2rem 1.4rem;margin-bottom:1rem;box-shadow:0 1px 4px rgba(0,0,0,0.07)}
+.card h3{font-size:1rem;color:#1a3a6b;margin-bottom:0.8rem;border-bottom:1.5px solid #e0e7ef;padding-bottom:0.5rem}
+.btn{display:inline-block;padding:0.5rem 1.1rem;border:none;border-radius:7px;cursor:pointer;font-size:0.85rem;font-weight:600;transition:all 0.2s}
+.btn-primary{background:#1a3a6b;color:#fff}.btn-secondary{background:#e0e7ef;color:#1a3a6b}
+.btn-success{background:#1a7a4a;color:#fff}.btn-warning{background:#d97706;color:#fff}
+.btn-sm{padding:0.3rem 0.8rem;font-size:0.78rem}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:0.8rem}
+table th{background:#1a3a6b;color:#fff;padding:0.5rem 0.6rem;text-align:left;white-space:nowrap}
+table td{padding:0.45rem 0.6rem;border-bottom:1px solid #eee;vertical-align:middle}
+table tr:hover td{background:#f5f8ff}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:0.73rem;font-weight:700}
+.badge-pending{background:#fef3c7;color:#92400e}
+.badge-approved{background:#d1fae5;color:#065f46}
+.badge-sent{background:#dbeafe;color:#1e40af}
+.badge-pat{background:#fce7f3;color:#9d174d}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+.row-btns{display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal-box{background:#fff;border-radius:12px;padding:1.8rem;width:640px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.recibo-wrap{border:2px solid #1a3a6b;border-radius:10px;padding:1.5rem;background:#fff}
+.recibo-wrap h2{color:#1a3a6b;font-size:1.1rem;text-align:center;margin-bottom:0.3rem}
+.recibo-wrap .inst{font-size:0.78rem;color:#555;text-align:center;margin-bottom:1rem}
+.recibo-sep{border:none;border-top:1px dashed #ccc;margin:0.8rem 0}
+.tracking-badge{display:inline-block;background:#1a3a6b;color:#fff;padding:5px 14px;border-radius:20px;font-size:0.85rem;font-weight:700;letter-spacing:1px}
+@media print{.no-print{display:none!important}.recibo-wrap{border:2px solid #000}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div><strong>&#127963; Patrimonio</strong> <span style="margin-left:1rem;opacity:0.7;font-size:0.82rem">UGEL Huánuco</span></div>
+  <div>
+    <button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.3)" onclick="window.location.href='sistema.html'">&#8592; Volver</button>
+  </div>
+</div>
+<div class="content">
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="setTab('tabPatAsignaciones',this)">&#128203; Asignaciones (PECOSA)</button>
+    <button class="tab-btn" onclick="setTab('tabPatRecibos',this)">&#128176; Recibos</button>
+  </div>
+
+  <!-- TAB ASIGNACIONES -->
+  <div id="tabPatAsignaciones" class="tab-content active">
+    <div class="card">
+      <h3>&#128203; Registro de asignaciones desde Almacén</h3>
+      <p style="font-size:0.82rem;color:#666;margin-bottom:1rem">Cada fila representa una PECOSA recibida de Almacén. Al aceptar, se genera el recibo de asignación.</p>
+      <div class="tbl-wrap">
+        <table><thead><tr>
+          <th>PECOSA</th><th>Fecha</th><th>Solicitante</th><th>Área</th><th>Ítems entregados</th><th>Total</th><th>Cód. Seguimiento</th><th>Estado</th><th>Acciones</th>
+        </tr></thead>
+        <tbody id="patAsignTbody"></tbody></table>
+      </div>
+    </div>
+    <div class="card hidden" id="patPecosaDetall">
+      <h3>&#128269; Detalle PECOSA</h3>
+      <div id="patPecosaInfo"></div>
+    </div>
+  </div>
+
+  <!-- TAB RECIBOS -->
+  <div id="tabPatRecibos" class="tab-content">
+    <div class="card">
+      <h3>&#128176; Recibos de asignación generados</h3>
+      <div class="tbl-wrap">
+        <table><thead><tr>
+          <th>N° Recibo</th><th>PECOSA</th><th>Fecha</th><th>Asignado a</th><th>Área</th><th>Total</th><th>Cód. Seguimiento</th><th>Ver recibo</th>
+        </tr></thead>
+        <tbody id="patRecibosTbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal recibo -->
+<div id="modalRecibo" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="recibo-wrap" id="reciboContent">
+      <h2>UGEL HUÁNUCO</h2>
+      <p class="inst">Recibo de Asignación de Bienes/Suministros</p>
+      <hr class="recibo-sep">
+      <div id="reciboBody"></div>
+    </div>
+    <div style="margin-top:1rem;display:flex;gap:0.8rem;justify-content:flex-end" class="no-print">
+      <button class="btn btn-primary" onclick="window.print()">&#128424; Imprimir</button>
+      <button class="btn btn-secondary" onclick="cerrarRecibo()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let reciboCounter = parseInt(localStorage.getItem('reciboCounter')||'1');
+
+function getPecosas(){return JSON.parse(localStorage.getItem('pecosas')||'[]');}
+function getRecibos(){return JSON.parse(localStorage.getItem('recibos')||'[]');}
+function saveRecibos(d){localStorage.setItem('recibos',JSON.stringify(d));}
+
+function setTab(id,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='tabPatAsignaciones') loadAsignaciones();
+  if(id==='tabPatRecibos') loadRecibos();
+}
+
+function loadAsignaciones(){
+  const pecosas = getPecosas();
+  const recibos = getRecibos();
+  const reciboMap = {};
+  recibos.forEach(r=>reciboMap[r.pecosaId]=r);
+
+  const tbody = document.getElementById('patAsignTbody');
+  tbody.innerHTML = pecosas.length===0
+    ? '<tr><td colspan="9" style="text-align:center;color:#999">Sin PECOSA recibidas de Almacén</td></tr>'
+    : pecosas.map(p=>{
+        const yaRecibido = !!reciboMap[p.id];
+        return `<tr>
+          <td><strong>${p.id}</strong></td><td>${p.fecha}</td><td>${p.solicitante}</td><td>${p.area}</td>
+          <td>${p.items.length} ítems</td><td>S/ ${p.total.toFixed(2)}</td>
+          <td><span class="tracking-badge">${p.codigoSeguimiento}</span></td>
+          <td><span class="badge ${yaRecibido?'badge-approved':'badge-pending'}">${yaRecibido?'Asignado':'Pendiente'}</span></td>
+          <td class="row-btns">
+            <button class="btn btn-secondary btn-sm" onclick="verDetallePecosa('${p.id}')">&#128269; Ver</button>
+            ${!yaRecibido?'<button class="btn btn-success btn-sm" onclick="recibirPecosa(\''+p.id+'\')">&#10003; Confirmar recepción</button>':'<button class="btn btn-sm btn-warning" onclick="verRecibo(\''+reciboMap[p.id].id+'\')">&#128176; Ver recibo</button>'}
+          </td>
+        </tr>`;
+      }).join('');
+}
+
+function verDetallePecosa(id){
+  const p = getPecosas().find(x=>x.id===id);
+  if(!p) return;
+  const card = document.getElementById('patPecosaDetall');
+  card.classList.remove('hidden');
+  document.getElementById('patPecosaInfo').innerHTML=`
+    <div class="grid-3" style="margin-bottom:0.8rem;font-size:0.85rem">
+      <div><strong>PECOSA:</strong> ${p.id}</div>
+      <div><strong>Fecha:</strong> ${p.fecha}</div>
+      <div><strong>Solicitante:</strong> ${p.solicitante}</div>
+      <div><strong>Área:</strong> ${p.area}</div>
+      <div><strong>Solicitud origen:</strong> ${p.solicitudId}</div>
+      <div><strong>Cód. seguimiento:</strong> <span class="tracking-badge">${p.codigoSeguimiento}</span></div>
+    </div>
+    <div class="tbl-wrap">
+      <table><thead><tr><th>Código</th><th>Nombre</th><th>Unidad</th><th>Cant. entregada</th><th>P.Unit</th><th>Total</th></tr></thead>
+      <tbody>${p.items.map(it=>`<tr>
+        <td>${it.id}</td><td>${it.nombre}</td><td>${it.unidad}</td>
+        <td>${it.cantidadEntregada}</td><td>S/ ${it.precio.toFixed(2)}</td>
+        <td>S/ ${(it.precio*it.cantidadEntregada).toFixed(2)}</td>
+      </tr>`).join('')}</tbody></table>
+    </div>`;
+  card.scrollIntoView({behavior:'smooth'});
+}
+
+function recibirPecosa(pecosaId){
+  const p = getPecosas().find(x=>x.id===pecosaId);
+  if(!p) return;
+  if(!confirm('¿Confirmar recepción de '+pecosaId+' y generar recibo de asignación?')) return;
+  const fecha = new Date().toLocaleDateString('es-PE');
+  const nRecibo = 'REC-'+String(reciboCounter).padStart(5,'0');
+  const recibos = getRecibos();
+  recibos.push({
+    id: nRecibo,
+    pecosaId,
+    fecha,
+    asignadoA: p.solicitante,
+    area: p.area,
+    items: p.items,
+    total: p.total,
+    codigoSeguimiento: p.codigoSeguimiento
+  });
+  saveRecibos(recibos);
+  reciboCounter++;
+  localStorage.setItem('reciboCounter',reciboCounter);
+  alert('✓ Recepción confirmada. Recibo '+nRecibo+' generado.');
+  loadAsignaciones();
+}
+
+function loadRecibos(){
+  const recibos = getRecibos();
+  const tbody = document.getElementById('patRecibosTbody');
+  tbody.innerHTML = recibos.length===0
+    ? '<tr><td colspan="8" style="text-align:center;color:#999">Sin recibos generados</td></tr>'
+    : recibos.map(r=>`<tr>
+        <td><strong>${r.id}</strong></td><td>${r.pecosaId}</td><td>${r.fecha}</td>
+        <td>${r.asignadoA}</td><td>${r.area}</td><td>S/ ${r.total.toFixed(2)}</td>
+        <td><span class="tracking-badge" style="font-size:0.72rem">${r.codigoSeguimiento}</span></td>
+        <td><button class="btn btn-warning btn-sm" onclick="verRecibo('${r.id}')">&#128176; Ver recibo</button></td>
+      </tr>`).join('');
+}
+
+function verRecibo(id){
+  const r = getRecibos().find(x=>x.id===id);
+  if(!r) return;
+  document.getElementById('reciboBody').innerHTML=`
+    <div class="grid-2" style="margin-bottom:1rem;font-size:0.85rem;gap:0.5rem">
+      <div><strong>N° Recibo:</strong> ${r.id}</div>
+      <div><strong>PECOSA origen:</strong> ${r.pecosaId}</div>
+      <div><strong>Fecha:</strong> ${r.fecha}</div>
+      <div><strong>Asignado a:</strong> ${r.asignadoA}</div>
+      <div><strong>Área:</strong> ${r.area}</div>
+      <div><strong>Total:</strong> S/ ${r.total.toFixed(2)}</div>
+    </div>
+    <hr class="recibo-sep">
+    <div style="margin-bottom:0.8rem">
+      <strong>Código de seguimiento:</strong><br>
+      <span class="tracking-badge" style="margin-top:5px;display:inline-block">${r.codigoSeguimiento}</span>
+    </div>
+    <hr class="recibo-sep">
+    <div class="tbl-wrap">
+      <table><thead><tr><th>#</th><th>Código</th><th>Nombre</th><th>Unidad</th><th>Cant.</th><th>P.Unit</th><th>Total</th></tr></thead>
+      <tbody>${r.items.map((it,i)=>`<tr>
+        <td>${i+1}</td><td>${it.id}</td><td>${it.nombre}</td><td>${it.unidad}</td>
+        <td>${it.cantidadEntregada||it.cantidad}</td><td>S/ ${it.precio.toFixed(2)}</td>
+        <td>S/ ${(it.precio*(it.cantidadEntregada||it.cantidad)).toFixed(2)}</td>
+      </tr>`).join('')}</tbody></table>
+    </div>
+    <hr class="recibo-sep">
+    <div class="grid-2" style="margin-top:1.5rem;gap:2rem">
+      <div style="text-align:center;border-top:1px solid #555;padding-top:0.5rem;font-size:0.8rem">Firma del receptor<br><em>${r.asignadoA}</em></div>
+      <div style="text-align:center;border-top:1px solid #555;padding-top:0.5rem;font-size:0.8rem">Responsable de Patrimonio<br><em>UGEL Huánuco</em></div>
+    </div>`;
+  document.getElementById('modalRecibo').classList.remove('hidden');
+}
+
+function cerrarRecibo(){
+  document.getElementById('modalRecibo').classList.add('hidden');
+}
+
+loadAsignaciones();
+</script>
+</body>
+</html>

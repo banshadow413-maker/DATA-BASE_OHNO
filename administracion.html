@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administración - UGEL Huánuco</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f0f2f5;color:#222;font-size:14px}
+.hidden{display:none!important}
+.topbar{background:#1a3a6b;color:#fff;padding:0.7rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.topbar h2{font-size:1rem}
+.content{padding:1.5rem}
+.tab-bar{display:flex;gap:0.5rem;margin-bottom:1.5rem;border-bottom:2px solid #d1d5db}
+.tab-btn{padding:0.55rem 1.2rem;border:none;background:none;cursor:pointer;font-size:0.88rem;color:#555;border-bottom:3px solid transparent;margin-bottom:-2px;border-radius:6px 6px 0 0;transition:all 0.2s}
+.tab-btn.active{color:#1a3a6b;font-weight:700;border-bottom-color:#1a3a6b;background:#e8eef7}
+.tab-content{display:none}.tab-content.active{display:block}
+.card{background:#fff;border-radius:10px;padding:1.2rem 1.4rem;margin-bottom:1rem;box-shadow:0 1px 4px rgba(0,0,0,0.07)}
+.card h3{font-size:1rem;color:#1a3a6b;margin-bottom:0.8rem;border-bottom:1.5px solid #e0e7ef;padding-bottom:0.5rem}
+.btn{display:inline-block;padding:0.6rem 1.4rem;border:none;border-radius:7px;cursor:pointer;font-size:0.9rem;font-weight:600;transition:all 0.2s}
+.btn-primary{background:#1a3a6b;color:#fff}.btn-primary:hover{background:#2563a8}
+.btn-secondary{background:#e0e7ef;color:#1a3a6b}.btn-secondary:hover{background:#c7d7ee}
+.btn-danger{background:#c0392b;color:#fff}.btn-danger:hover{background:#e74c3c}
+.btn-success{background:#1a7a4a;color:#fff}.btn-success:hover{background:#25a366}
+.btn-sm{padding:0.35rem 0.9rem;font-size:0.8rem}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+table th{background:#1a3a6b;color:#fff;padding:0.55rem 0.7rem;text-align:left;white-space:nowrap}
+table td{padding:0.5rem 0.7rem;border-bottom:1px solid #eee;vertical-align:middle}
+table tr:hover td{background:#f5f8ff}
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:0.75rem;font-weight:700}
+.badge-pending{background:#fef3c7;color:#92400e}
+.badge-approved{background:#d1fae5;color:#065f46}
+.badge-rejected{background:#fee2e2;color:#991b1b}
+.badge-sent{background:#dbeafe;color:#1e40af}
+.badge-logistica{background:#ede9fe;color:#5b21b6}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+.row-btns{display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap}
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:0.82rem;color:#555;margin-bottom:0.35rem;font-weight:600}
+.form-group input,.form-group select{width:100%;padding:0.55rem 0.75rem;border:1.5px solid #ccc;border-radius:7px;font-size:0.9rem;outline:none}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div><strong>&#128197; Administración</strong> <span style="margin-left:1rem;opacity:0.7;font-size:0.82rem">UGEL Huánuco</span></div>
+  <div style="display:flex;gap:0.8rem">
+    <button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.3)" onclick="window.location.href='sistema.html'">&#8592; Volver</button>
+  </div>
+</div>
+<div class="content">
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="setTab('tabAdmiAprobacion',this)">Solicitudes del Jefe de Área</button>
+    <button class="tab-btn" onclick="setTab('tabAdmiCotizadas',this)">Solicitudes cotizadas (Logística)</button>
+  </div>
+
+  <!-- TAB 1: Aprobación -->
+  <div id="tabAdmiAprobacion" class="tab-content active">
+    <div class="card">
+      <h3>&#128203; Solicitudes aprobadas por Jefe de Área</h3>
+      <div class="tbl-wrap">
+        <table><thead><tr>
+          <th>N° Solicitud</th><th>Fecha</th><th>Solicitante</th><th>Área</th><th>Meta</th><th>Items</th><th>Total</th><th>Estado</th><th>Ver detalle</th><th>Acciones</th>
+        </tr></thead>
+        <tbody id="admiPendTbody"></tbody></table>
+      </div>
+    </div>
+    <div class="card hidden" id="admiDetallCard">
+      <h3>&#128269; Detalle de solicitud</h3>
+      <div id="admiDetallInfo"></div>
+      <div class="tbl-wrap" style="margin-top:0.8rem">
+        <table><thead><tr><th>Código</th><th>Nombre</th><th>Tipo</th><th>Unidad</th><th>Cant.</th><th>P.Unit</th><th>Total</th></tr></thead>
+        <tbody id="admiDetallTbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: Cotizadas -->
+  <div id="tabAdmiCotizadas" class="tab-content">
+    <div class="card">
+      <h3>&#128200; Solicitudes cotizadas por Logística</h3>
+      <div class="tbl-wrap">
+        <table><thead><tr>
+          <th>N° Compra</th><th>Fecha</th><th>Proveedor</th><th>Solicitud Origen</th><th>Ítems</th><th>Total</th><th>Estado</th><th>Ver detalle</th><th>Acción</th>
+        </tr></thead>
+        <tbody id="admiCotizTbody"></tbody></table>
+      </div>
+    </div>
+    <div class="card hidden" id="admiCotizDetallCard">
+      <h3>&#128269; Detalle de cotización</h3>
+      <div id="admiCotizDetallInfo"></div>
+      <div class="tbl-wrap" style="margin-top:0.8rem">
+        <table><thead><tr><th>Cód.Compra</th><th>Ítem</th><th>Nombre</th><th>Cant.</th><th>P.Unit</th><th>Total</th></tr></thead>
+        <tbody id="admiCotizDetallTbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function getSolicitudes(){return JSON.parse(localStorage.getItem('solicitudes')||'[]');}
+function saveSolicitudes(d){localStorage.setItem('solicitudes',JSON.stringify(d));}
+function getCompras(){return JSON.parse(localStorage.getItem('compras')||'[]');}
+function saveCompras(d){localStorage.setItem('compras',JSON.stringify(d));}
+
+function setTab(id, btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='tabAdmiAprobacion') loadAprobacion();
+  if(id==='tabAdmiCotizadas') loadCotizadas();
+}
+
+function loadAprobacion(){
+  const solic = getSolicitudes().filter(s=>s.estado==='Aprobado-Jefe');
+  const tbody = document.getElementById('admiPendTbody');
+  tbody.innerHTML = solic.length===0
+    ? '<tr><td colspan="10" style="text-align:center;color:#999">Sin solicitudes pendientes de aprobación</td></tr>'
+    : solic.map(s=>`<tr>
+        <td>${s.id}</td><td>${s.fecha}</td><td>${s.solicitante}</td><td>${s.area}</td><td>${s.meta}</td>
+        <td>${s.items.length} ítems</td><td>S/ ${s.total.toFixed(2)}</td>
+        <td><span class="badge badge-pending">Por aprobar</span></td>
+        <td><button class="btn btn-secondary btn-sm" onclick="verDetalle('${s.id}')">&#128269; Ver</button></td>
+        <td class="row-btns">
+          <button class="btn btn-success btn-sm" onclick="aprobarAdmi('${s.id}')">&#10003; Enviar a Logística</button>
+          <button class="btn btn-danger btn-sm" onclick="rechazarAdmi('${s.id}')">&#10006; Rechazar</button>
+        </td>
+      </tr>`).join('');
+}
+
+function verDetalle(id){
+  const s = getSolicitudes().find(x=>x.id===id);
+  if(!s) return;
+  const card = document.getElementById('admiDetallCard');
+  card.classList.remove('hidden');
+  document.getElementById('admiDetallInfo').innerHTML=`
+    <div class="grid-3">
+      <div><strong>N° Solicitud:</strong> ${s.id}</div>
+      <div><strong>Fecha:</strong> ${s.fecha}</div>
+      <div><strong>Solicitante:</strong> ${s.solicitante}</div>
+      <div><strong>Área:</strong> ${s.area}</div>
+      <div><strong>Meta:</strong> ${s.meta}</div>
+      <div><strong>Total:</strong> S/ ${s.total.toFixed(2)}</div>
+    </div>`;
+  document.getElementById('admiDetallTbody').innerHTML=s.items.map(it=>`<tr>
+    <td>${it.id}</td><td>${it.nombre}</td><td>${it.tipo}</td><td>${it.unidad}</td>
+    <td>${it.cantidad}</td><td>S/ ${it.precio.toFixed(2)}</td><td>S/ ${it.total.toFixed(2)}</td>
+  </tr>`).join('');
+  card.scrollIntoView({behavior:'smooth'});
+}
+
+function aprobarAdmi(id){
+  const all = getSolicitudes();
+  const s = all.find(x=>x.id===id);
+  if(!s) return;
+  s.estado='Aprobado-Admi';
+  saveSolicitudes(all);
+  alert('✓ Solicitud '+id+' aprobada. Enviada a Logística para cotización.');
+  document.getElementById('admiDetallCard').classList.add('hidden');
+  loadAprobacion();
+}
+
+function rechazarAdmi(id){
+  if(!confirm('¿Rechazar la solicitud '+id+'?')) return;
+  const all = getSolicitudes().filter(x=>x.id!==id);
+  saveSolicitudes(all);
+  document.getElementById('admiDetallCard').classList.add('hidden');
+  loadAprobacion();
+}
+
+function loadCotizadas(){
+  const compras = getCompras().filter(c=>c.estado==='Cotizado');
+  const tbody = document.getElementById('admiCotizTbody');
+  tbody.innerHTML = compras.length===0
+    ? '<tr><td colspan="9" style="text-align:center;color:#999">Sin solicitudes cotizadas por Logística</td></tr>'
+    : compras.map(c=>`<tr>
+        <td>${c.id}</td><td>${c.fecha}</td><td><strong>${c.proveedor}</strong></td>
+        <td>${c.solicitudOrigen}</td><td>${c.items.length} ítems</td>
+        <td>S/ ${c.total.toFixed(2)}</td>
+        <td><span class="badge badge-pending">Por aprobar</span></td>
+        <td><button class="btn btn-secondary btn-sm" onclick="verDetalleCotiz('${c.id}')">&#128269; Ver</button></td>
+        <td class="row-btns">
+          <button class="btn btn-success btn-sm" onclick="aprobarCotiz('${c.id}')">&#10003; Aprobar compra</button>
+          <button class="btn btn-danger btn-sm" onclick="rechazarCotiz('${c.id}')">&#10006; Rechazar</button>
+        </td>
+      </tr>`).join('');
+}
+
+function verDetalleCotiz(id){
+  const c = getCompras().find(x=>x.id===id);
+  if(!c) return;
+  const card = document.getElementById('admiCotizDetallCard');
+  card.classList.remove('hidden');
+  document.getElementById('admiCotizDetallInfo').innerHTML=`
+    <div class="grid-3">
+      <div><strong>N° Compra:</strong> ${c.id}</div>
+      <div><strong>Proveedor:</strong> ${c.proveedor}</div>
+      <div><strong>Solicitud origen:</strong> ${c.solicitudOrigen}</div>
+      <div><strong>Fecha:</strong> ${c.fecha}</div>
+      <div><strong>Total:</strong> S/ ${c.total.toFixed(2)}</div>
+    </div>`;
+  document.getElementById('admiCotizDetallTbody').innerHTML=c.items.map(it=>`<tr>
+    <td>${it.codCompra||it.id}</td><td>${it.nombre}</td><td>${it.cantidad}</td>
+    <td>S/ ${it.precio.toFixed(2)}</td><td>S/ ${(it.cantidad*it.precio).toFixed(2)}</td>
+  </tr>`).join('');
+  card.scrollIntoView({behavior:'smooth'});
+}
+
+function aprobarCotiz(id){
+  const all = getCompras();
+  const c = all.find(x=>x.id===id);
+  if(!c) return;
+  c.estado='Aprobado-Compra';
+  saveCompras(all);
+  alert('✓ Compra '+id+' aprobada. Logística procederá con la adquisición.');
+  document.getElementById('admiCotizDetallCard').classList.add('hidden');
+  loadCotizadas();
+}
+
+function rechazarCotiz(id){
+  if(!confirm('¿Rechazar esta cotización?')) return;
+  const all = getCompras().filter(x=>x.id!==id);
+  saveCompras(all);
+  document.getElementById('admiCotizDetallCard').classList.add('hidden');
+  loadCotizadas();
+}
+
+loadAprobacion();
+</script>
+</body>
+</html>
